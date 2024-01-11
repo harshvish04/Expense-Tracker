@@ -1,0 +1,79 @@
+import json
+from datetime import datetime
+
+class HarshDailyExpenseCalculator:
+    def __init__(self):
+        self.expenses = []
+
+    def add_expense(self, amount, description, category, date=None):
+        if not date:
+            date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        expense = {
+            'date': date,
+            'amount': amount,
+            'description': description,
+            'category': category
+        }
+        self.expenses.append(expense)
+
+    def save_expenses(self, filename='expenses.json'):
+        with open(filename, 'w') as file:
+            json.dump(self.expenses, file)
+
+    def load_expenses(self, filename='expenses.json'):
+        try:
+            with open(filename, 'r') as file:
+                self.expenses = json.load(file)
+        except FileNotFoundError:
+            # Handle the case where the file doesn't exist yet
+            pass
+
+    def calculate_daily_total(self):
+        return sum(expense['amount'] for expense in self.expenses)
+
+    def get_monthly_summary(self, month, year):
+        monthly_expenses = [expense for expense in self.expenses if
+                            datetime.strptime(expense['date'], "%Y-%m-%d %H:%M:%S").month == month
+                            and datetime.strptime(expense['date'], "%Y-%m-%d %H:%M:%S").year == year]
+        total_spent = sum(expense['amount'] for expense in monthly_expenses)
+        return total_spent, monthly_expenses
+
+# Welcome Section
+print("Welcome to Harsh Daily Expense Calculator!")
+user_name = input("May I know your name? ")
+
+# Modified Example Usage:
+harsh_expense_calculator = HarshDailyExpenseCalculator()
+
+# Allow users to input daily expenses
+while True:
+    try:
+        amount_input = input(f"\nHello {user_name}! Enter the amount spent (or 'stop' to stop): ")
+        if amount_input.lower() == 'stop':
+            break  # Stop input if the user enters 'stop'
+
+        amount = float(amount_input)
+        description = input("Enter a brief description: ")
+        category = input("Enter the expense category: ")
+        date_input = input("Enter the date (YYYY-MM-DD) or press Enter for the current date: ")
+        date = date_input if date_input else None
+
+        harsh_expense_calculator.add_expense(amount, description, category, date)
+    except ValueError:
+        print("Invalid input. Please enter a valid amount.")
+
+# Save expenses to a file
+harsh_expense_calculator.save_expenses()
+
+# Load expenses from the file
+harsh_expense_calculator.load_expenses()
+
+# Calculate total expenses for the entire day
+daily_total = harsh_expense_calculator.calculate_daily_total()
+
+# Displaying the results
+print("\nExpenses:")
+for expense in harsh_expense_calculator.expenses:
+    print(f"{expense['amount']} INR - {expense['description']} - {expense['category']} ({expense['date']})")
+
+print(f"\nTotal expenses for the entire day: {daily_total:.2f} INR")
